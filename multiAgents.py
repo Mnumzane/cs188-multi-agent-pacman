@@ -183,10 +183,9 @@ class MinimaxAgent(MultiAgentSearchAgent):
 
         def inner(currState, index, depth):
             if depth == 0:
-                return self.evaluationFunction(currState), None
+                return self.evaluationFunction(currState)
             actions = currState.getLegalActions(index)
             optimal_value = 999999
-            optimal_action = None
             # if depth == 0 and index == gameState.getNumAgents() - 1:
             #     optimal_value = 999999
             #     optimal_action = None
@@ -200,28 +199,32 @@ class MinimaxAgent(MultiAgentSearchAgent):
                 optimal_value = -1
             for action in actions:
                 newState = currState.generateSuccessor(index, action)
-                if newState.isWin():
-                    return 999999, action
-                elif newState.isLose():
-                    return 0, action
+                if newState.isWin() or newState.isLose():
+                    return self.evaluationFunction(newState)
                 if index == gameState.getNumAgents() - 1:
                     depth -= 1
                     index = 0
                 else:
                     index += 1
-                value, a = inner(newState, index, depth)
-                print(value, a)
+                value = inner(newState, index, depth)
                 if index == 0:
                     if value > optimal_value:
                         optimal_value = value
-                        optimal_action = action
                 else:
                     if value < optimal_value:
                         optimal_value = value
-                        optimal_action = action
-            return optimal_value, optimal_action
+            return optimal_value
 
-        return inner(gameState, 0, self.depth)[1]
+        optimal = None
+        max_value = 0
+        pacActions = gameState.getLegalActions(0)
+        for action in pacActions:
+            newState = gameState.generateSuccessor(0, action)
+            value = inner(newState, 1, self.depth)
+            if value > max_value:
+                max_value = value
+                optimal = action
+        return optimal
 
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
