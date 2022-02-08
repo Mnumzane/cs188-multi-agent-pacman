@@ -12,6 +12,8 @@
 # Pieter Abbeel (pabbeel@cs.berkeley.edu).
 
 
+from ast import Num
+from dis import dis
 from util import manhattanDistance
 from game import Directions
 import random, util
@@ -68,14 +70,49 @@ class ReflexAgent(Agent):
         to create a masterful evaluation function.
         """
         # Useful information you can extract from a GameState (pacman.py)
+        
+        
+        # def getManhattenDistance(StartState:Any,Goal:Any):
+        #     xy1 = StartState
+        #     xy2 = Goal
+        #     return abs(xy1[0] - xy2[0]) + abs(xy1[1] - xy2[1])
+        
         successorGameState = currentGameState.generatePacmanSuccessor(action)
         newPos = successorGameState.getPacmanPosition()
         newFood = successorGameState.getFood()
         newGhostStates = successorGameState.getGhostStates()
         newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
-
+        newGhostPos = [ghostState.getPosition() for ghostState in newGhostStates]
         "*** YOUR CODE HERE ***"
-        return successorGameState.getScore()
+        def getManhattenDistance(StartState,Goal):
+            xy1 = StartState
+            xy2 = Goal
+            return abs(xy1[0] - xy2[0]) + abs(xy1[1] - xy2[1])
+
+        foodEaten = newPos in currentGameState.getFood().asList()
+        if successorGameState.getNumFood() == 0:
+            return 999999
+
+        # # Add awareness of ghost distance
+        for posGhost in newGhostPos:
+            if posGhost == newPos:
+                return 0
+        # foodList = newFood.asList()
+        # print(newFood.asList())
+        # if newPos in foodList:
+        #     print('Eat')
+        #     return 999999
+
+        minDistance = 9999999
+        for food in newFood.asList():
+            if(foodEaten):
+                return 999999
+            distance = getManhattenDistance(newPos,food)
+            if distance < minDistance:
+                minDistance = distance
+        #print(currentGameState.getPacmanState())
+        #print('%s %x',newPos,1/minDistance)
+        return 1/minDistance
 
 def scoreEvaluationFunction(currentGameState: GameState):
     """
