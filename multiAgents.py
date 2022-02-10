@@ -184,7 +184,6 @@ class MinimaxAgent(MultiAgentSearchAgent):
         Returns whether or not the game state is a losing state
         """
         def inner(currState, index, depth):
-            print("index:", index, "depth:", depth)
             if depth == 0:
                 return self.evaluationFunction(currState)
             actions = currState.getLegalActions(index)
