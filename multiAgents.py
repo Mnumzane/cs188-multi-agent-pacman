@@ -95,8 +95,11 @@ class ReflexAgent(Agent):
             return abs(xy1[0] - xy2[0]) + abs(xy1[1] - xy2[1])
 
         foodEaten = newPos in currentGameState.getFood().asList()
-        if successorGameState.getNumFood() == 0:
-            return 999999
+
+        if successorGameState.isWin():
+            return successorGameState.getScore()
+        elif successorGameState.isLose():
+            return -999999 + successorGameState.getScore()
 
         # # Add awareness of ghost distance
         for posGhost in newGhostPos:
@@ -180,48 +183,42 @@ class MinimaxAgent(MultiAgentSearchAgent):
         gameState.isLose():
         Returns whether or not the game state is a losing state
         """
-
         def inner(currState, index, depth):
+            print("index:", index, "depth:", depth)
             if depth == 0:
                 return self.evaluationFunction(currState)
             actions = currState.getLegalActions(index)
             optimal_value = 999999
-            # if depth == 0 and index == gameState.getNumAgents() - 1:
-            #     optimal_value = 999999
-            #     optimal_action = None
-            #     for action in actions:
-            #         value = self.evaluationFunction(currState, action)
-            #     if value < optimal_value:
-            #         optimal_value = value
-            #         optimal_action = action
-            #     return optimal_value, optimal_action
             if index == 0:
-                optimal_value = -1
+                optimal_value = -999999
             for action in actions:
                 newState = currState.generateSuccessor(index, action)
                 if newState.isWin() or newState.isLose():
-                    return self.evaluationFunction(newState)
-                if index == gameState.getNumAgents() - 1:
-                    depth -= 1
-                    index = 0
+                    value = self.evaluationFunction(newState)
                 else:
-                    index += 1
-                value = inner(newState, index, depth)
+                    if index == gameState.getNumAgents() - 1:
+                        new_depth = depth - 1
+                        new_index = 0
+                    else:
+                        new_depth = depth
+                        new_index = index + 1
+                    value = inner(newState, new_index, new_depth)
                 if index == 0:
-                    if value > optimal_value:
-                        optimal_value = value
+                    optimal_value = max(optimal_value, value)
                 else:
-                    if value < optimal_value:
-                        optimal_value = value
+                    optimal_value = min(optimal_value, value)
             return optimal_value
 
         optimal = None
-        max_value = 0
+        max_value = -999999
         pacActions = gameState.getLegalActions(0)
         for action in pacActions:
             newState = gameState.generateSuccessor(0, action)
-            value = inner(newState, 1, self.depth)
-            if value > max_value:
+            if newState.isWin() or newState.isLose():
+                value = self.evaluationFunction(newState)
+            else:
+                value = inner(newState, 1, self.depth)
+            if value >= max_value:
                 max_value = value
                 optimal = action
         return optimal
