@@ -184,7 +184,6 @@ class MinimaxAgent(MultiAgentSearchAgent):
         Returns whether or not the game state is a losing state
         """
         def inner(currState, index, depth):
-            print("index:", index, "depth:", depth)
             if depth == 0:
                 return self.evaluationFunction(currState)
             actions = currState.getLegalActions(index)
@@ -234,7 +233,54 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         Returns the minimax action using self.depth and self.evaluationFunction
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        def inner(currState, index, depth, alpha, beta):
+            if depth == 0:
+                return self.evaluationFunction(currState)
+            actions = currState.getLegalActions(index)
+            optimal_value = 999999
+            if index == 0:
+                optimal_value = -999999
+            for action in actions:
+                newState = currState.generateSuccessor(index, action)
+                if newState.isWin() or newState.isLose():
+                    value = self.evaluationFunction(newState)
+                else:
+                    if index == gameState.getNumAgents() - 1:
+                        new_depth = depth - 1
+                        new_index = 0
+                    else:
+                        new_depth = depth
+                        new_index = index + 1
+                    value = inner(newState, new_index, new_depth, alpha, beta)
+                if index == 0:
+                    optimal_value = max(optimal_value, value)
+                    if optimal_value > beta:
+                        return optimal_value
+                    alpha = max(optimal_value, alpha)
+                else:
+                    optimal_value = min(optimal_value, value)
+                    if optimal_value < alpha:
+                        return optimal_value
+                    beta = min(optimal_value, beta)
+            return optimal_value
+
+        alpha = -999999
+        beta = 999999
+        optimal = None
+        max_value = -999999
+        pacActions = gameState.getLegalActions(0)
+        for action in pacActions:
+            newState = gameState.generateSuccessor(0, action)
+            if newState.isWin() or newState.isLose():
+                value = self.evaluationFunction(newState)
+            else:
+                value = inner(newState, 1, self.depth, alpha, beta)
+            if value >= max_value:
+                max_value = value
+                optimal = action
+            if value >= alpha:
+                alpha = max_value
+        return optimal
 
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
