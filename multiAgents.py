@@ -20,7 +20,7 @@ import random
 import util
 
 from game import Agent
-from pacman import GameState
+from pacman import SCARED_TIME, GameState
 
 
 class ReflexAgent(Agent):
@@ -343,7 +343,34 @@ def betterEvaluationFunction(currentGameState: GameState):
     DESCRIPTION: <write something here so we know what you did>
     """
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    def getManhattanDistance(startState, goal):
+        xy1 = startState
+        xy2 = goal
+        return abs(xy1[0] - xy2[0]) + abs(xy1[1] - xy2[1])
+
+    pacman = currentGameState.getPacmanPosition()
+    food = currentGameState.getFood().asList()
+    capsules = currentGameState.getCapsules()
+    ghosts = [(g.getPosition(), g.scaredTimer)
+              for g in currentGameState.getGhostStates()]
+
+    score = currentGameState.getScore()
+
+    for g in ghosts:
+        dist = getManhattanDistance(pacman, g[0])
+        if g[1] > 0:
+            score += g[1] - dist
+        elif dist == 1:
+            score -= 1/dist
+
+    if capsules:
+        score += 10/min([getManhattanDistance(pacman, capsule)
+                         for capsule in capsules])
+
+    if food:
+        score += 1/min([getManhattanDistance(pacman, f) for f in food])
+
+    return score
 
 
 # Abbreviation
